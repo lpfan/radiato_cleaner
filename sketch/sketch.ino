@@ -2,23 +2,19 @@
 #include <LiquidCrystal.h>
 
 LiquidCrystal lcd(4,5,10,11,12,13);
+OneWire  ds(2);
 
-// OneWire DS18S20, DS18B20, DS1822 Temperature Example
-//
-// http://www.pjrc.com/teensy/td_libs_OneWire.html
-//
-// The DallasTemperature library can do all this work for you!
-// http://milesburton.com/Dallas_Temperature_Control_Library
-
-OneWire  ds(2);  // on pin 10 (a 4.7K resistor is necessary)
-
-int relayPin = 8;
-float desiredTemp = 32.9;
+const int relayPin = 8;
+int menuBtnState = 0;
+float defaultTemp = 10;
+bool systemMenuMode = false;
+const int menuBtnPin = 9;
 
 void setup(void) {
   lcd.begin(16,2);
   lcd.print("Water temp. = ");
   pinMode(relayPin, OUTPUT);
+  pinMode(menuBtnPin, INPUT);
 }
 
 float measureTemperature(void) {
@@ -96,12 +92,18 @@ float measureTemperature(void) {
 }
 
 void loop(void) {
+  menuBtnState = digitalRead(menuBtnPin);
+
+    if (menuBtnState == HIGH) {
+        digitalWrite(relayPin, HIGH);
+    }
+
   float liquidTemperature = measureTemperature();
   lcd.setCursor(0, 1);
   lcd.print(liquidTemperature);
   lcd.print(" C");
 
-  if (liquidTemperature < desiredTemp) {
+  if (liquidTemperature < defaultTemp) {
     digitalWrite(relayPin, HIGH);
   } else {
     digitalWrite(relayPin, LOW);
